@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Electron Run</title>
+  <style>
+    :root {
+      --bg1: #0a1020;
+      --bg2: #15213d;
+      --panel: rgba(255,255,255,0.08);
+      --panel-border: rgba(255,255,255,0.18);
+      --text: #eef4ff;
+      --muted: #bdd0ff;
+      --accent: #7cf0ff;
+      --accent2: #ffd166;
+      --danger: #ff7b89;
+      --success: #83f7a0;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at top, #1d3568 0%, var(--bg1) 45%),
+        linear-gradient(180deg, var(--bg2), var(--bg1));
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+
+    .wrap {
+      width: min(1100px, 100%);
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 16px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 18px;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.28);
+      backdrop-filter: blur(6px);
+    }
+
+    .sidebar {
+      padding: 18px;
+    }
+
+    .sidebar h1 {
+      margin: 0 0 8px;
+      font-size: 1.6rem;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.45;
+      margin-bottom: 14px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(124,240,255,0.14);
+      border: 1px solid rgba(124,240,255,0.35);
+      color: var(--accent);
+      font-weight: bold;
+      margin-bottom: 14px;
+      font-size: 0.9rem;
+    }
+
+    .infoBox {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .infoBox h2 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+      color: var(--accent2);
+    }
+
+    .infoBox p, .infoBox li {
+      font-size: 0.94rem;
+      line-height: 1.4;
+      color: var(--text);
+    }
+
+    .infoBox ul {
+      margin: 8px 0 0 18px;
+      padding: 0;
+    }
+
+    .btnRow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-weight: bold;
+      cursor: pointer;
+      background: linear-gradient(180deg, #8af4ff, #49d9f7);
+      color: #042336;
+      box-shadow: 0 4px 14px rgba(73,217,247,0.3);
+    }
+
+    button.secondary {
+      background: linear-gradient(180deg, #ffe08d, #ffc84b);
+      color: #402a00;
+      box-shadow: 0 4px 14px rgba(255,200,75,0.28);
+    }
+
+    .gamePanel {
+      padding: 12px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 8px 6px 12px;
+    }
+
+    .pill {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 0.95rem;
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: linear-gradient(180deg, #1f3666 0%, #15213d 100%);
+    }
+
+    .footerNote {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    .key {
+      display: inline-block;
+      min-width: 28px;
+      text-align: center;
+      padding: 4px 8px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.16);
+      margin-right: 4px;
+      font-weight: bold;
+    }
+
+    @media (max-width: 900px) {
+      .wrap { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <aside class="panel sidebar">
+      <div class="badge">⚡ Didaktisches Jump-and-Run</div>
+      <h1>Electron Run</h1>
+      <div class="subtitle">
+        Du bist ein Elektron. Laufe durch den Leiter, weiche Atomrümpfen aus, sammle Energie und bringe die Lampe zum Leuchten.
+      </div>
+
+      <div class="infoBox">
+        <h2>Steuerung</h2>
+        <p>
+          <span class="key">←</span>
+          <span class="key">→</span> bewegen<br>
+          <span class="key">↑</span> oder <span class="key">Leertaste</span> springen<br>
+          <span class="key">R</span> neu starten
+        </p>
+      </div>
+
+      <div class="infoBox">
+        <h2>Lernidee</h2>
+        <ul>
+          <li>Ein <b>geschlossener Stromkreis</b> ist nötig.</li>
+          <li>Die <b>Atomrümpfe</b> stehen für Hindernisse im Metallgitter.</li>
+          <li>Im <b>Widerstand</b> gibt es mehr Hindernisse.</li>
+          <li>Am Ende leuchtet die <b>Lampe</b>, wenn das Elektron ankommt.</li>
+        </ul>
+      </div>
+
+      <div class="infoBox">
+        <h2>Zusatzideen im Spiel</h2>
+        <ul>
+          <li>Sammle <b>Energiepunkte</b> als Motivation.</li>
+          <li>Kleine <b>Merksätze</b> erscheinen im Level.</li>
+          <li>Im Ziel gibt es ein kurzes <b>Leucht-Feedback</b>.</li>
+        </ul>
+      </div>
+
+      <div class="btnRow">
+        <button id="startBtn">Start / Neustart</button>
+        <button id="pauseBtn" class="secondary">Pause</button>
+      </div>
+    </aside>
+
+    <main class="panel gamePanel">
+      <div class="topbar">
+        <div class="pill" id="statusText">Status: Bereit</div>
+        <div class="pill" id="energyText">Energie: 0</div>
+        <div class="pill" id="tipText">Tipp: Erreiche die Lampe.</div>
+      </div>
+      <canvas id="game" width="760" height="430"></canvas>
+      <div class="footerNote">
+        Eine Datei genügt: Diese HTML-Datei kann direkt auf GitHub Pages hochgeladen werden.
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+
+    const statusText = document.getElementById('statusText');
+    const energyText = document.getElementById('energyText');
+    const tipText = document.getElementById('tipText');
+    const startBtn = document.getElementById('startBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+
+    const keys = {};
+    let paused = false;
+    let gameOver = false;
+    let won = false;
+    let energy = 0;
+    let flash = 0;
+
+    const gravity = 0.55;
+    const groundY = 350;
+
+    const tips = [
+      'Ein Stromkreis funktioniert nur, wenn er geschlossen ist.',
+      'In Metallen können sich Elektronen bewegen.',
+      'Viele Hindernisse stehen im Spiel für einen größeren Widerstand.',
+      'Eine Lampe leuchtet, wenn elektrische Energie umgesetzt wird.'
+    ];
+
+    const player = {
+      x: 40,
+      y: 0,
+      w: 26,
+      h: 26,
+      vx: 0,
+      vy: 0,
+      speed: 3.2,
+      jump: -10.5,
+      onGround: false,
+      respawnX: 40,
+      respawnY: 260
+    };
+
+    const platforms = [
+      {x: 0, y: 350, w: 150, h: 80, kind: 'wire'},
+      {x: 180, y: 320, w: 120, h: 110, kind: 'wire'},
+      {x: 330, y: 350, w: 120, h: 80, kind: 'resistor'},
+      {x: 490, y: 300, w: 110, h: 130, kind: 'wire'},
+      {x: 620, y: 260, w: 140, h: 170, kind: 'lamp'}
+    ];
+
+    const obstacles = [
+      {x: 90, y: 322, w: 22, h: 28, type: 'atom'},
+      {x: 215, y: 292, w: 22, h: 28, type: 'atom'},
+      {x: 360, y: 322, w: 18, h: 28, type: 'atom'},
+      {x: 395, y: 322, w: 18, h: 28, type: 'atom'},
+      {x: 430, y: 322, w: 18, h: 28, type: 'atom'},
+      {x: 530, y: 272, w: 22, h: 28, type: 'atom'},
+    ];
+
+    const collectibles = [
+      {x: 250, y: 270, r: 7, taken: false},
+      {x: 520, y: 245, r: 7, taken: false},
+      {x: 690, y: 220, r: 7, taken: false},
+    ];
+
+    const signs = [
+      {x: 25, y: 310, text: 'Start: Minuspol'},
+      {x: 340, y: 310, text: 'Widerstand: mehr Hindernisse'},
+      {x: 635, y: 220, text: 'Ziel: Lampe'}
+    ];
+
+    const lamp = {x: 700, y: 170, w: 35, h: 65};
+
+    function resetGame() {
+      player.x = player.respawnX;
+      player.y = player.respawnY;
+      player.vx = 0;
+      player.vy = 0;
+      energy = 0;
+      gameOver = false;
+      won = false;
+      flash = 0;
+      paused = false;
+      collectibles.forEach(c => c.taken = false);
+      updateHud('Status: Lauf!', 'Tipp: Sammle Energie und erreiche die Lampe.');
+    }
+
+    function updateHud(status, tip) {
+      statusText.textContent = status;
+      energyText.textContent = 'Energie: ' + energy;
+      tipText.textContent = tip;
+    }
+
+    function rectsCollide(a, b) {
+      return a.x < b.x + b.w &&
+             a.x + a.w > b.x &&
+             a.y < b.y + b.h &&
+             a.y + a.h > b.y;
+    }
+
+    function circleRectCollide(c, r) {
+      const nearestX = Math.max(r.x, Math.min(c.x, r.x + r.w));
+      const nearestY = Math.max(r.y, Math.min(c.y, r.y + r.h));
+      const dx = c.x - nearestX;
+      const dy = c.y - nearestY;
+      return dx * dx + dy * dy < c.r * c.r;
+    }
+
+    function handleInput() {
+      player.vx = 0;
+      if (keys['ArrowLeft']) player.vx = -player.speed;
+      if (keys['ArrowRight']) player.vx = player.speed;
+      if ((keys['ArrowUp'] || keys[' ']) && player.onGround) {
+        player.vy = player.jump;
+        player.onGround = false;
+      }
+    }
+
+    function update() {
+      if (paused || gameOver || won) return;
+
+      handleInput();
+
+      player.x += player.vx;
+      player.vy += gravity;
+      player.y += player.vy;
+      player.onGround = false;
+
+      for (const p of platforms) {
+        if (rectsCollide(player, p)) {
+          const prevBottom = player.y - player.vy + player.h;
+          if (prevBottom <= p.y + 8 && player.vy >= 0) {
+            player.y = p.y - player.h;
+            player.vy = 0;
+            player.onGround = true;
+          }
+        }
+      }
+
+      if (player.y > canvas.height + 50) {
+        gameOver = true;
+        updateHud('Status: Elektron verloren', 'Tipp: Springe genauer auf die Leiterbahn.');
+      }
+
+      for (const o of obstacles) {
+        if (rectsCollide(player, o)) {
+          gameOver = true;
+          updateHud('Status: Zusammenstoß', 'Merksatz: Hindernisse bremsen die Bewegung im Leiter.');
+        }
+      }
+
+      for (const c of collectibles) {
+        if (!c.taken && circleRectCollide(c, player)) {
+          c.taken = true;
+          energy += 1;
+          updateHud('Status: Energie gesammelt', tips[Math.min(energy - 1, tips.length - 1)]);
+        }
+      }
+
+      if (rectsCollide(player, lamp)) {
+        won = true;
+        flash = 60;
+        updateHud('Status: Ziel erreicht!', 'Die Lampe leuchtet nur im geschlossenen Stromkreis.');
+      }
+
+      player.x = Math.max(0, Math.min(canvas.width - player.w, player.x));
+    }
+
+    function drawBackground() {
+      const g = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      g.addColorStop(0, '#20386b');
+      g.addColorStop(1, '#16233f');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < 30; i++) {
+        const x = (i * 97) % canvas.width;
+        const y = (i * 53) % 180;
+        ctx.fillStyle = 'rgba(255,255,255,0.08)';
+        ctx.beginPath();
+        ctx.arc(x, y, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawPlatforms() {
+      for (const p of platforms) {
+        if (p.kind === 'wire') ctx.fillStyle = '#95b8ff';
+        else if (p.kind === 'resistor') ctx.fillStyle = '#e6a85b';
+        else ctx.fillStyle = '#84d39b';
+
+        ctx.fillRect(p.x, p.y, p.w, p.h);
+
+        if (p.kind === 'resistor') {
+          ctx.strokeStyle = '#7b4a16';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(p.x + 5, p.y + 18);
+          for (let i = 0; i < 6; i++) {
+            const xx = p.x + 10 + i * 18;
+            const yy = i % 2 === 0 ? p.y + 8 : p.y + 28;
+            ctx.lineTo(xx, yy);
+          }
+          ctx.stroke();
+        }
+      }
+    }
+
+    function drawObstacles() {
+      for (const o of obstacles) {
+        ctx.fillStyle = '#ff8aa0';
+        ctx.beginPath();
+        ctx.arc(o.x + o.w / 2, o.y + o.h / 2, o.w / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.55)';
+        ctx.beginPath();
+        ctx.arc(o.x + o.w / 2 - 3, o.y + o.h / 2 - 4, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawCollectibles() {
+      for (const c of collectibles) {
+        if (c.taken) continue;
+        ctx.fillStyle = '#7cf0ff';
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+        ctx.stroke();
+      }
+    }
+
+    function drawSigns() {
+      ctx.font = '14px Arial';
+      ctx.fillStyle = 'rgba(238,244,255,0.9)';
+      for (const s of signs) {
+        ctx.fillText(s.text, s.x, s.y);
+      }
+    }
+
+    function drawLamp() {
+      const lit = won || flash > 0;
+      if (lit) {
+        ctx.fillStyle = 'rgba(255, 230, 120, 0.28)';
+        ctx.beginPath();
+        ctx.arc(lamp.x + lamp.w / 2, lamp.y + 20, 60, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.fillStyle = lit ? '#ffe37a' : '#d8e2ff';
+      ctx.beginPath();
+      ctx.arc(lamp.x + lamp.w / 2, lamp.y + 18, 18, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#7684a8';
+      ctx.fillRect(lamp.x + 12, lamp.y + 34, 12, 20);
+      ctx.fillRect(lamp.x + 8, lamp.y + 54, 20, 11);
+    }
+
+    function drawBattery() {
+      ctx.fillStyle = '#f45d76';
+      ctx.fillRect(18, 275, 18, 40);
+      ctx.fillStyle = '#87c9ff';
+      ctx.fillRect(40, 265, 26, 50);
+      ctx.fillStyle = '#eef4ff';
+      ctx.font = 'bold 16px Arial';
+      ctx.fillText('-', 22, 268);
+      ctx.fillText('+', 47, 258);
+    }
+
+    function drawPlayer() {
+      ctx.save();
+      ctx.translate(player.x + player.w / 2, player.y + player.h / 2);
+      ctx.fillStyle = '#7cf0ff';
+      ctx.beginPath();
+      ctx.arc(0, 0, player.w / 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = '#05354a';
+      ctx.beginPath();
+      ctx.arc(-4, -2, 2.5, 0, Math.PI * 2);
+      ctx.arc(4, -2, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = '#05354a';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, 3, 5, 0.2, Math.PI - 0.2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawOverlay() {
+      if (!gameOver && !won && !paused) return;
+
+      ctx.fillStyle = 'rgba(5,10,20,0.48)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#eef4ff';
+      ctx.font = 'bold 34px Arial';
+
+      if (won) ctx.fillText('💡 Die Lampe leuchtet!', canvas.width / 2, 150);
+      else if (paused) ctx.fillText('Pause', canvas.width / 2, 150);
+      else ctx.fillText('Versuch es noch einmal', canvas.width / 2, 150);
+
+      ctx.font = '20px Arial';
+      if (won) {
+        ctx.fillText('Merksatz: Strom braucht einen geschlossenen Weg.', canvas.width / 2, 195);
+        ctx.fillText('Gesammelte Energiepunkte: ' + energy, canvas.width / 2, 230);
+      } else if (paused) {
+        ctx.fillText('Drücke den Pause-Knopf erneut zum Weiterspielen.', canvas.width / 2, 205);
+      } else {
+        ctx.fillText('Atomrümpfe und Lücken machen den Weg schwierig.', canvas.width / 2, 205);
+        ctx.fillText('Drücke R für einen neuen Versuch.', canvas.width / 2, 235);
+      }
+
+      ctx.textAlign = 'start';
+    }
+
+    function render() {
+      drawBackground();
+      drawPlatforms();
+      drawBattery();
+      drawLamp();
+      drawObstacles();
+      drawCollectibles();
+      drawSigns();
+      drawPlayer();
+      drawOverlay();
+      if (flash > 0) flash--;
+    }
+
+    function loop() {
+      update();
+      render();
+      requestAnimationFrame(loop);
+    }
+
+    window.addEventListener('keydown', (e) => {
+      keys[e.key] = true;
+      if (e.key === 'r' || e.key === 'R') resetGame();
+      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', ' '].includes(e.key)) e.preventDefault();
+    });
+
+    window.addEventListener('keyup', (e) => {
+      keys[e.key] = false;
+    });
+
+    startBtn.addEventListener('click', resetGame);
+    pauseBtn.addEventListener('click', () => {
+      paused = !paused;
+      if (paused) updateHud('Status: Pause', 'Tipp: Überlege, wo der Widerstand im Level ist.');
+      else updateHud('Status: Lauf!', 'Tipp: Erreiche die Lampe.');
+    });
+
+    resetGame();
+    loop();
+  </script>
+</body>
+</html>
